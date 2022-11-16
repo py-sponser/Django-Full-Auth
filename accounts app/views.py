@@ -79,7 +79,7 @@ class LoginView(APIView):
                 if User.objects.filter(email=email).exists():  # checking if Email satisfies requirements
                     user = authenticate(username=email, password=password)  # authenticating user (checking username, password)
                     if user:  # if user is authenticated
-                        if user.mfa and TOTP.objects.get(user=user).secret:  # if user has mfa enabled, and has OTP secret key
+                        if user.mfa and TOTP.objects.filter(user=user).exists():  # if user has mfa enabled, and has TOTP record
                             return Response({"otp": "Verify OTP."})  # frontend will show otp form screen
 
                         auth_token, created = Token.objects.get_or_create(user=user)
