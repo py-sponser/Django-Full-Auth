@@ -46,7 +46,7 @@ class SocialAccount(APIView):
                         new_user_password = make_password(generate_password())  # generating new encrypted strong random password for user
                         if User.objects.filter(email=email).exists():  # checking if there's a user account of this email
                             user = User.objects.get(email=email)  # get user from db
-                            if user.mfa and TOTP.objects.get(user=user).secret:  # if user has mfa enabled, and has OTP secret key
+                            if user.mfa and TOTP.objects.filter(user=user).exists():  # if user has mfa enabled, and has TOTP record
                                 return Response({"otp": "Verify OTP."})  # frontend will show otp form screen
                         else:  # if there's no user account of that email
                             user = User.objects.create_user(email=email, username=email, first_name=first_name,
@@ -170,13 +170,12 @@ class ActivateAccount(APIView):
             return Response({"args_error": "user_id and activate_token aren't provided."})
 
 
-@method_decorator(csrf_protect, name="dispatch")  # requiring csrf token for this view
 class EnableMFATOTP(APIView):
     """Enabling MFA using OTP (Time-based) with Google Authenticator"""
     permission_classes = (permissions.IsAuthenticated, )
 
     def post(self, request):
-        user = User.objects.get(id=request.user.id)  # getting current authenticated user from DB
+        user = request.user
         if not user.mfa:  # Only enable mfa it's disabled
             user.mfa = True  # enabling MFA for user
             user.save()  # saving changed user data to DB
@@ -188,29 +187,36 @@ class EnableMFATOTP(APIView):
         return Response({"mfa": "MFA is already enabled"})
 
 
+@method_decorator(csrf_protect, name="dispatch")
+class DisableMFATOTP(APIView):
+    permission_classes = (permissions.IsAuthenticated, )  # only authenticated users can access this view
+
+    def post(self, request):
+        user = request.user
+        if user.mfa:  # if user has MFA enabled
+            user.mfa = False  # disable it
+            user.save()  # save changed data to DB
+            user_totp = TOTP.objects.get(user=user)  # get TOTP record
+            user_totp.delete()  # delete it
+            return Response({"success": "User MFA is disabled successfully"})
+
+        return Response({"mfa_disabled": "User MFA is already disabled"})
+
+
 @method_decorator(csrf_protect, name="dispatch")  # requiring csrf token for this view
 class GetProvisionURI(APIView):
     """Generating URL for Google Authenticator to scan through QRCode"""
     permission_classes = (permissions.IsAuthenticated,)  # only authenticated users can access this view
 
     def post(self, request):
-        email = request.data.get("email", "")  # getting email from request json data
-        if email:  # checking if length > 0 and not None
-            if validate_email(email):  # checking if email satisfies requirements
-                if User.objects.filter(email=email).exists():  # checking if there's a user account has this email
-                    if User.objects.get(email=email).mfa:  # if user has MFA enabled
-                        user_pyotp = TOTP.objects.get(user__email=email)  # get OTP (Time-based) config data for user
-                        provision_uri = build_uri(secret=user_pyotp.secret, issuer=user_pyotp.issuer_name, name=user_pyotp.name)
-                        # building url for google authetnicator that includes secret_key, name of website, email address of user
-                        return Response({"provision_uri": provision_uri})
-                    else:
-                        return Response({"mfa_disabled": "User hasn't enabled MFA yet."})
-                else:
-                    return Response({"exist_error": "Account isn't exist"})
-            else:
-                return Response({"email_invalid": "Email doesn't satisfy requirements. example@example.com"})
+        user = request.user
+        if user.mfa:  # if user has MFA enabled
+            user_pyotp = TOTP.objects.get(user=user)  # get OTP (Time-based) config data for user
+            provision_uri = build_uri(secret=user_pyotp.secret, issuer=user_pyotp.issuer_name, name=user_pyotp.name)
+            # building url for google authetnicator that includes secret_key, name of website, email address of user
+            return Response({"provision_uri": provision_uri})
         else:
-            return Response({"args_error": "Email isn't provided."})
+            return Response({"mfa_disabled": "User hasn't enabled MFA yet."})
 
 
 @method_decorator(csrf_protect, name="dispatch")  # requiring csrf token for this view
