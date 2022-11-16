@@ -2,7 +2,7 @@ from requests import get
 from pyotp import random_base32, TOTP
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework.views import APIView, Response
 from rest_framework import permissions
 from django.views.decorators.csrf import csrf_protect
@@ -128,6 +128,7 @@ class SignUpView(APIView):
                             # create new user but not activated
                             email_token = AccountActivationTokenGenerator().make_token(user)
                             # Using password reset tokens for activating
+                            encoded_user_id = urlsafe_base64_encode(str(user.id).encode())  # encoding user id
                             email_thread = Thread(target=send_email,
                                                   kwargs={"request": request, "email": email, "user_id": user.id,
                                                           "email_token": email_token, "mode": "activate"})
@@ -190,7 +191,7 @@ class EnableMFATOTP(APIView):
 @method_decorator(csrf_protect, name="dispatch")  # requiring csrf token for this view
 class GetProvisionURI(APIView):
     """Generating URL for Google Authenticator to scan through QRCode"""
-    permission_classes = (permissions.IsAuthenticated,)  # only unauthenticated users can access this view
+    permission_classes = (permissions.IsAuthenticated,)  # only authenticated users can access this view
 
     def post(self, request):
         email = request.data.get("email", "")  # getting email from request json data
