@@ -46,8 +46,9 @@ class ResetPasswordStart(APIView):
     def post(self, request):
         email = request.data.get("email", "")  # getting users' email from request json data
         if email:  # if email length > 0 and not None
-            if User.objects.filter(email=email).exists():  # if there's user has this email in DB
-                user = User.objects.get(email=email)  # get that user
+            user = User.objects.filter(email=email)
+            if user.exists():  # if there's user has this email in DB
+                user = user[0]  # get that user
                 password_reset_token_generator = PasswordResetTokenGenerator()  # creating reset token generator, checker
                 email_token = password_reset_token_generator.make_token(user)  # creating reset_token specific for that user
                 encoded_user_id = urlsafe_base64_encode(str(user.id).encode())  # encoding user id
@@ -57,7 +58,8 @@ class ResetPasswordStart(APIView):
                 # python threads are used to deliver emails faster, and return response to user without having to wait
                 # for sending email.
                 email_thread.start()
-                return Response({"success": "A mail sent to your email address for resetting password.")
+                return Response({"success": "A mail sent to your email address for resetting password.", "data": {"user_id": encoded_user_id,
+                                                                                                                  "email_token": email_token}})
             else:
                 return Response({"exist_error": "Account isn't exist."})
         else:
@@ -76,13 +78,14 @@ class ResetPasswordComplete(APIView):
             password_reset_token_generator = PasswordResetTokenGenerator()  # creating object for genearting, checking email tokens.
             user_id = urlsafe_base64_decode(user_id).decode()  # decoding user_id param
             print(user_id, reset_token)
-            if User.objects.filter(id=user_id).exists():  # checking if user is registered with this id in DB.
+            user = User.objects.filter(id=user_id)
+            if user.exists():  # checking if user is registered with this id in DB.
                 new_password = request.data.get("new_password", "")  # getting password from request json data.
                 new_confirm_password = request.data.get("new_confirm_password", "")  # getting confirm_password
                 if new_password and new_confirm_password:  # if passwords lengths > 0
                     if new_password == new_confirm_password:  # if passwords are matched
                         if password_requirements_validator(new_password):  # checking if password satisfies requirements
-                            user = User.objects.get(id=user_id)  # getting user from DB.
+                            user = user[0]
                             if password_reset_token_generator.check_token(user, reset_token):  # checking reset_token of the user
                                 user.set_password(new_password)  # setting new password for user
                                 user.save()  # saving changed data to DB.
@@ -133,3 +136,4 @@ class ChangePassword(APIView):
                 return Response({"match_error": "New password is not matched. (password and confirm password)"})
         else:
             return Response({"fields_error": "One or more field are missing."})
+
