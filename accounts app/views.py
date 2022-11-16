@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework.views import APIView, Response
 from rest_framework import permissions
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from accounts.models import User, TOTP
 from accounts.passwords import send_email
@@ -44,9 +44,10 @@ class SocialAccount(APIView):
                     token_info = get(google_token_verification_url).json()  # requests library, getting result of token verification
                     if token_info.get("issued_to", "") == settings.GOOGLE_CLIENT_ID:  # verifying google api client ID
                         new_user_password = make_password(generate_password())  # generating new encrypted strong random password for user
-                        if User.objects.filter(email=email).exists():  # checking if there's a user account of this email
-                            user = User.objects.get(email=email)  # get user from db
-                            if user.mfa and TOTP.objects.filter(user=user).exists():  # if user has mfa enabled, and has TOTP record
+                        user = User.objects.filter(email=email)  # get user from db by email
+                        if user.exists():  # checking if there's a user account of this email
+                            user = user[0]
+                            if user.mfa:  # if user has mfa enabled, and has TOTP record
                                 return Response({"otp": "Verify OTP."})  # frontend will show otp form screen
                         else:  # if there's no user account of that email
                             user = User.objects.create_user(email=email, username=email, first_name=first_name,
@@ -79,7 +80,7 @@ class LoginView(APIView):
                 if User.objects.filter(email=email).exists():  # checking if Email satisfies requirements
                     user = authenticate(username=email, password=password)  # authenticating user (checking username, password)
                     if user:  # if user is authenticated
-                        if user.mfa and TOTP.objects.filter(user=user).exists():  # if user has mfa enabled, and has TOTP record
+                        if user.mfa:  # if user has mfa enabled
                             return Response({"otp": "Verify OTP."})  # frontend will show otp form screen
 
                         auth_token, created = Token.objects.get_or_create(user=user)
@@ -130,7 +131,7 @@ class SignUpView(APIView):
                             # Using password reset tokens for activating
                             encoded_user_id = urlsafe_base64_encode(str(user.id).encode())  # encoding user id
                             email_thread = Thread(target=send_email,
-                                                  kwargs={"request": request, "email": email, "user_id": user.id,
+                                                  kwargs={"request": request, "email": email, "user_id": encoded_user_id,
                                                           "email_token": email_token, "mode": "activate"})
                             # Sending url for resetting password to users' email using python threads
                             # python threads are used to deliver emails faster, and return response to user without having to wait
@@ -156,8 +157,9 @@ class ActivateAccount(APIView):
         if user_id and activate_token:  # if their length > 0 and not None
             account_activation_token_generator = AccountActivationTokenGenerator()  # creating object for genearting, checking email tokens.
             user_id = urlsafe_base64_decode(user_id).decode()  # decoding user_id param
-            if User.objects.filter(id=user_id).exists():  # checking DB if there's an account with this id
-                user = User.objects.get(id=user_id)  # getting user account of that id
+            user = User.objects.filter(id=user_id)
+            if user.exists():  # checking DB if there's an account with this id
+                user = user[0]
                 if account_activation_token_generator.check_token(user, activate_token):  # checking reset_token (email_token) for that user
                     user.is_active = True  # activate user account
                     user.save()  # saving changed user data to DB
@@ -170,6 +172,7 @@ class ActivateAccount(APIView):
             return Response({"args_error": "user_id and activate_token aren't provided."})
 
 
+@method_decorator(csrf_protect, name="dispatch")  # requiring csrf token for this view
 class EnableMFATOTP(APIView):
     """Enabling MFA using OTP (Time-based) with Google Authenticator"""
     permission_classes = (permissions.IsAuthenticated, )
@@ -222,15 +225,16 @@ class GetProvisionURI(APIView):
 @method_decorator(csrf_protect, name="dispatch")  # requiring csrf token for this view
 class CheckOTP(APIView):
     """Checking OTP View used when Login"""
-    permission_classes = (account_permissions.IsNotAuthenticated, )  # only unauthorized users can access this view
+    permission_classes = (permissions.AllowAny, )  # any user can access this view
 
     def post(self, request):
         otp = request.data.get("user_otp", "")  # getting otp from request json data
         email = request.data.get("email", "")  # getting email from request json data
         if otp and email:  # if their length > 0 and not None
             if validate_email(email):  # checking if email satisfies requirements
-                if User.objects.filter(email=email).exists():  # checking if there's a user account has this email in DB
-                    user = User.objects.get(email=email)  # getting user that has this email from DB
+                user = User.objects.filter(email=email)
+                if user.exists():  # checking if there's a user account has this email in DB
+                    user = user[0]
                     if user.mfa:
                         user_totp = TOTP.objects.get(user=user)  # getting TOTP data of that user
                         totp = TOTP(user_totp.secret, interval=user_totp.interval)  # TOTP object of user secret_key
@@ -248,3 +252,4 @@ class CheckOTP(APIView):
                 return Response({"email_invalid": "Email doesn't satisfy requirements. example@example.com"})
         else:
             return Response({"error": "No OTP or Email is recieved."})  # if no otp is sent
+
