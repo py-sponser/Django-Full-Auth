@@ -227,7 +227,7 @@ class CheckOTP(APIView):
                     user = User.objects.get(email=email)  # getting user that has this email from DB
                     if user.mfa:
                         user_totp = TOTP.objects.get(user=user)  # getting TOTP data of that user
-                        totp = TOTP(user_totp.secret, interval=user_totp.interval)  # TOTP object of user
+                        totp = TOTP(user_totp.secret, interval=user_totp.interval)  # TOTP object of user secret_key
                         otp_ok = totp.verify(otp)  # verifying OTP depending on TOTP secret_key
                         if otp_ok:  # if otp is valid
                             auth_token, created = Token.objects.get_or_create(user=user)  # Getting or creating token for user
