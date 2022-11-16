@@ -12,6 +12,7 @@ urlpatterns = [
     path("activate/<str:user_id>/<str:activate_token>/", views.ActivateAccount.as_view()),
     # MFA urls
     path("mfa/enable/", views.EnableMFATOTP.as_view()),
+    path("mfa/disable/", views.DisableMFATOTP.as_view()),
     path("mfa/get-provision-uri/", views.GetProvisionURI.as_view()),
     path("mfa/check-otp/", views.CheckOTP.as_view()),
     # Password Urls
