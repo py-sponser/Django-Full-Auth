@@ -70,7 +70,7 @@ class ResetPasswordComplete(APIView):
     permission_classes = (account_permissions.IsNotAuthenticated,)  # only unauthenticated users can access this view
 
     def post(self, request, user_id, reset_token):  # user_id, reset_token are params in url,
-        """Frontend will get url params, show reset password form for user, then send all of them in POST request"""
+        """React Router will get url params, show reset password form for user, then send all of them in POST request"""
 
         if user_id and reset_token:  # if their length > 0 and not None
             password_reset_token_generator = PasswordResetTokenGenerator()  # creating object for genearting, checking email tokens.
