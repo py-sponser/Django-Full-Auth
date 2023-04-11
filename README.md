@@ -20,7 +20,7 @@
 -------------------------
 [+] Middlewares:
 
-- Customized CsrfMiddlware to accept requests from mobile apps, or maybe Postman, Curl normally + web frontend (main)
+- Customized CsrfMiddlware: Requiring CSRFToken is ignored for mobile apps, curl, and postman.
 
 -------------------
 [+] Utils:
