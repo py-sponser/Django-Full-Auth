@@ -19,9 +19,3 @@
 using Postman or curl with:
   - Headers: {"Content-Type": "application/json", "Authorization": `Token {auth_token}`}
   - Data: {otp: Google Authenticator OTP numbers, email: "email_address"}
-  
-------------------
-
-[+] After making any changes:
-- npm run build
-- replace new build/ with any existing build/ inside django project directory (BASE_DIR).
