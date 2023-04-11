@@ -8,16 +8,15 @@
 ----------------
 [+] Auth Views (Permissions set):
 
-- Using CSRFTokens.
-- Social/Normal Login with require of OTP (MFA using Google Authenticator) if user enabled MFA.
-- Registering account with is_active=False
+- Requiring CSRFTokens.
+- Social/Normal Login.
+- Registering account.
 - Account Activation required using 6-digit codes sent to user email.
-- Logout (Delete user token from DB)
-- Enable/Disable MFA View
-- QRCode for MFA Enabling (Google Authenticator OTPs).
-- Encryption for MFA secret key that identifies Google Authenticator OTPs.
-- Reset Password Views
-- Change Password View
+- Logout
+- Enable/Disable MFA (Google Authenticator)
+- Password Reset by 6-digit codes sent to user email.
+- Password Change.
+
 -------------------------
 [+] Middlewares:
 
