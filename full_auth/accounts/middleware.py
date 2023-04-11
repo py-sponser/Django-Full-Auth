@@ -4,11 +4,11 @@ from user_agents import parse
 
 class CustomizedCsrfViewMiddleware(CsrfViewMiddleware):
     def process_view(self, request, callback, callback_args, callback_kwargs):
-        parsed_user_agent = parse(request.META.get("HTTP_USER_AGENT", ''))
+        parsed_user_agent = parse(request.META.get("HTTP_USER_AGENT"))
         is_mobile = parsed_user_agent.is_mobile
         is_pc = parsed_user_agent.is_pc  # accept csrftoken while coding to finish work faster
 
-        if "Postman" or "curl" in request.META.get("HTTP_USER_AGENT", ""):
+        if "Postman" or "curl" in request.META.get("HTTP_USER_AGENT"):
             print("It's a Postman or Curl, CSRFToken is ignored, Accepting request ...")
             return self._accept(request)
 
