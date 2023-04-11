@@ -1,5 +1,5 @@
 """
-ASGI config for password_manager_backend project.
+ASGI config for full_auth project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'password_manager_backend.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'full_auth.settings')
 
 application = get_asgi_application()

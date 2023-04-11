@@ -1,5 +1,5 @@
 """
-WSGI config for password_manager_backend project.
+WSGI config for full_auth project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'password_manager_backend.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'full_auth.settings')
 
 application = get_wsgi_application()
