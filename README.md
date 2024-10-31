@@ -1,4 +1,4 @@
-# Django-Full-Auth
+# Django-Full-Auth with React.js for web frontend.
 
 - Using Django, Django REST Framework
 - Using Token Authentication
@@ -6,7 +6,7 @@
 (pip install -r requirements.txt)
 
 ----------------
-[+] Auth Views (Permissions set):
+[+] Views via APIViews and serializers:
 
 - Requiring CSRFTokens.
 - Social/Normal Login.
@@ -30,6 +30,7 @@
 - 6 digit generator for activation, password reset codes.
 - Password Generator.
 - Provision Uri builder. (for MFA QRCode)
+- Normalizing serializer errors to be more cleaner.
 
 ------------------------
 [+] Permissions:
@@ -52,7 +53,7 @@
 [+] Django SMTP:
 
 - SMTP configured to work with Google smtp. (details will be in settings.py)
-- Emails are sent through Python Thread. (django.core.email.EmailMessage is used)
+- Emails are sent via Python threading. (user.email_user is used)
 
 -----------------
 [+] Frontend Support:
