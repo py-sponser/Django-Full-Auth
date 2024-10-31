@@ -2,12 +2,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from rest_framework.views import APIView, Response
 from accounts import account_permissions
-from accounts.models import User
-from rest_framework.authtoken.models import Token
-from accounts.utils import password_requirements_validator, normalized_serializer_error
-from django.conf import settings
-from threading import Thread
-from accounts.utils import generate_mail_code
+from accounts.utils import normalized_serializer_error
 from rest_framework import permissions, status
 from accounts.password_serializers import *
 

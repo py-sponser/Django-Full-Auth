@@ -21,7 +21,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(required=True)
 
     def validate(self, attrs):
-        self.passwd = attrs.pop("password")
+        passwd = attrs.pop("password")
 
         try:
             self.user = User.objects.get(**attrs)
@@ -30,12 +30,12 @@ class LoginSerializer(serializers.Serializer):
                 "error": f"Invalid {User.USERNAME_FIELD}"
             })
 
-        if not self.user.check_password(self.passwd):
+        if not self.user.check_password(passwd):
             raise ValidationError({
                 "error": "Invalid password"
             })
 
-        if not authenticate(username=self.user.email, password=self.passwd):
+        if not authenticate(username=self.user.email, password=passwd):
             raise ValidationError({
                 "error": "Account isn't activated"
             })
@@ -109,20 +109,20 @@ class RegisterSerializer(serializers.Serializer):
     password2 = serializers.CharField(required=True)
 
     def validate(self, attrs):
-        self.passwd1 = attrs.pop("password1")
-        self.passwd2 = attrs.pop("password2")
+        passwd1 = attrs.get("password1")
+        passwd2 = attrs.get("password2")
 
-        if User.objects.filter(**attrs).exists():
+        if User.objects.filter(email=attrs.get("email")).exists():
             raise serializers.ValidationError({
                 "error": "Email is already registered."
             })
 
-        if not password_requirements_validator(self.passwd1):
+        if not password_requirements_validator(passwd1):
             raise serializers.ValidationError({
                 "error": "Password doesn't satisfy requirements."
             })
 
-        if not self.passwd1 == self.passwd2:
+        if not passwd1 == passwd2:
             raise serializers.ValidationError({
                 "error": "Passwords aren't matched."
             })
@@ -132,6 +132,7 @@ class RegisterSerializer(serializers.Serializer):
 
     def save(self):
         email = self.validated_data.get("email")
+        passwd1 = self.validated_data.get("password1")
         username = f"{email.split('@')[0]}{randint(1, 1000000000000)}"
 
         activation_code = generate_mail_code()
@@ -140,7 +141,7 @@ class RegisterSerializer(serializers.Serializer):
         user = User.objects.create_user(username=username, email=email,
                                 is_active=False, activation_code=activation_code,
                                 password_reset_code=reset_code)
-        user.set_password(self.passwd1)
+        user.set_password(passwd1)
         user.save()
 
         email_thread = Thread(

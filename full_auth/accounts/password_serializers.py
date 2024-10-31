@@ -70,8 +70,8 @@ class PasswordResetEndSerializer(serializers.Serializer):
     password2 = serializers.CharField(required=True)
 
     def validate(self, attrs):
-        passwd1 = attrs.get("passwd1")
-        passwd2 = attrs.get("passwd2")
+        passwd1 = attrs.get("password1")
+        passwd2 = attrs.get("password2")
         
         try:
             self.user = User.objects.get(email=attrs.get("email"))
@@ -89,7 +89,7 @@ class PasswordResetEndSerializer(serializers.Serializer):
         
 
     def save(self):
-        passwd1 = self.validated_data.get("passwd1")
+        passwd1 = self.validated_data.get("password1")
         self.user.set_password = passwd1
         self.user.password_reset_code = generate_mail_code()
         self.user.save()
