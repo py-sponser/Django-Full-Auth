@@ -2,6 +2,10 @@ import re, random
 from urllib.parse import quote, urlencode
 
 
+def normalized_serializer_error(errors):
+    return {"error": field_errors[0] for field_name, field_errors in errors.items()}
+
+
 def generate_mail_code():
     email_code_str = [str(random.randint(0, 9)) for counter in range(6)]
     email_code = int("".join(email_code_str))

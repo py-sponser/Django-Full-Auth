@@ -4,7 +4,4 @@ django-cors-headers
 pillow
 user_agents
 pyotp
-six
 requests
-random
-re

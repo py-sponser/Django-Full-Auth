@@ -9,16 +9,16 @@ urlpatterns = [
     path("register/", views.SignUpView.as_view()),
     path("register/social-account/", views.SocialAccount.as_view()),
     path("activate/", views.ActivateAccount.as_view()),
-    path("activate/resend-code/", views.SendActivationCode.as_view()),
+    path("activate/resend-code/", views.ActivationCodeRequest.as_view()),
     # MFA urls
     path("mfa/check/", views.CheckMFA.as_view()),
     path("mfa/enable/", views.EnableMFATOTP.as_view()),
     path("mfa/disable/", views.DisableMFATOTP.as_view()),
     path("mfa/get-provision-uri/", views.GetProvisionURI.as_view()),
-    path("mfa/check-otp/", views.CheckOTP.as_view()),
+    path("mfa/check-otp/", views.ValidateTOTPView.as_view()),
     # Password Urls
-    path("reset_password/start/", password_views.ResetPasswordStart.as_view()),
-    path("reset_password/resend-code/", password_views.SendResetPasswordCode.as_view()),
-    path("reset_password/verify-security-code/", password_views.PasswordResetSecurityCodeVerification.as_view()),
-    path("change_password/", password_views.ChangePassword.as_view()),
+    path("password/reset/start/", password_views.PasswordResetStart.as_view()),
+    path("password/reset/resend-code/", password_views.PasswordResetCodeRequest.as_view()),
+    path("password/reset/verify-security-code/", password_views.PasswordResetSecurityCodeVerification.as_view()),
+    path("password/change/", password_views.PasswordChange.as_view()),
 ]
