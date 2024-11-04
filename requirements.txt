@@ -5,3 +5,5 @@ pillow
 user_agents
 pyotp
 requests
+boto3
+django-storages

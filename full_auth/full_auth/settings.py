@@ -131,22 +131,7 @@ USE_I18N = True
 USE_TZ = False  # set to False to remove TZ from datetime input/query formats
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "build/static"),  # Including Reactjs build static files to Django static.
-]
-STATIC_ROOT = "static/"
-
-
-##############################################################
-# MEDIA TO STORE UPLOADED IMAGES:
-####################################
-MEDIA_URL = "media/"
-MEDIA_ROOT = "media/"
-##############################################################
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -206,3 +191,47 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # for reactjs with django while development
 ]
 
+
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.1/howto/static-files/
+
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "build/static"),  # Including Reactjs build static files to Django static.
+]
+STATIC_ROOT = "static/"
+
+
+##############################################################
+# MEDIA TO STORE UPLOADED IMAGES:
+####################################
+MEDIA_URL = "media/"
+MEDIA_ROOT = "media/"
+##############################################################
+
+AWS_ACCESS_KEY_ID = ""
+AWS_SECRET_ACCESS_KEY = ""
+AWS_STORAGE_BUCKET_NAME = "s3-bucket-name"
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+AWS_S3_FILE_OVERWRITE = False
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+        "OPTIONS": {
+            # media files/dirs will be pushed to 'media' directory within s3 bucket
+            "location": "media"
+        }
+    },
+
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+        "OPTIONS": {
+            # static files/dirs will be pushed to 'static' directory within s3 bucket
+            "location": "static"
+        }
+    }
+
+}
