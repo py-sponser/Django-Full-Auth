@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "pyotp",
     "requests",
     "django_cryptography",
+    "storages",
 ]
 
 MIDDLEWARE = [
